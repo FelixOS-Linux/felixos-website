@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FelixOS | Arch-based OS</title>
+    <link rel="icon" type="image/png" href="assets/logos/felix-os-nobg.png">
+    <!-- Google Fonts: Plus Jakarta Sans for a very modern, geometric tech look -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* COLOR PALETTE & VARIABLES */
+        :root {
+            --bg-base: #050814; /* Deep, dark navy/black */
+            --brand-blue: #0A66FF; /* Matching your logo's vibrant blue */
+            --brand-glow: rgba(10, 102, 255, 0.4);
+            --text-main: #F8FAFC;
+            --text-muted: #94A3B8;
+            
+            /* Glassmorphism Settings */
+            --glass-bg: rgba(15, 23, 42, 0.4);
+            --glass-border: rgba(10, 102, 255, 0.15);
+            --glass-highlight: rgba(255, 255, 255, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            overflow-x: hidden;
+            line-height: 1.6;
+            position: relative;
+        }
+
+        /* AMBIENT BACKGROUND GLOWS */
+        .ambient-glow {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: -1;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .glow-1 { top: -10%; left: -10%; width: 500px; height: 500px; background: var(--brand-blue); }
+        .glow-2 { top: 40%; right: -20%; width: 600px; height: 600px; background: rgba(10, 102, 255, 0.2); }
+        .glow-3 { bottom: -10%; left: 20%; width: 400px; height: 400px; background: rgba(10, 102, 255, 0.15); }
+
+        /* UTILITIES */
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-top: 1px solid var(--glass-highlight);
+            border-radius: 24px;
+            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(10, 102, 255, 0.4);
+            box-shadow: 0 10px 40px var(--brand-glow);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--brand-blue);
+            color: #fff;
+            padding: 14px 28px;
+            border-radius: 12px; /* Material You style squircle logic */
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            border: none;
+            box-shadow: 0 4px 15px var(--brand-glow);
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: #1a74ff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--brand-glow);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--brand-blue);
+            color: var(--brand-blue);
+            box-shadow: none;
+        }
+
+        .btn-outline:hover {
+            background: rgba(10, 102, 255, 0.1);
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* NAVIGATION */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 15px 0;
+            z-index: 100;
+            background: rgba(5, 8, 20, 0.7);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .nav-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .brand img {
+            height: 36px;
+            width: auto;
+            border-radius: 8px; /* Slight rounding for the logo if needed */
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: #fff;
+        }
+
+        /* HERO SECTION (Split Layout) */
+        .hero {
+            padding: 160px 0 100px;
+            display: flex;
+            align-items: center;
+            gap: 60px;
+            min-height: 100vh;
+        }
+
+        .hero-text {
+            flex: 1;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            background: rgba(10, 102, 255, 0.1);
+            border: 1px solid rgba(10, 102, 255, 0.2);
+            color: var(--brand-blue);
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .hero h1 {
+            font-size: 4.5rem;
+            font-weight: 800;
+            line-height: 1.05;
+            letter-spacing: -0.03em;
+            margin-bottom: 24px;
+        }
+
+        .hero h1 span {
+            color: var(--brand-blue);
+        }
+
+        .hero p {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+            max-width: 500px;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 16px;
+        }
+
+        .hero-visual {
+            flex: 1;
+            position: relative;
+        }
+
+        .floating-ui {
+            width: 100%;
+            height: auto;
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* FEATURES (Asymmetrical Grid) */
+        .features {
+            padding: 100px 0;
+            position: relative;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-header h2 {
+            font-size: 2.8rem;
+            margin-bottom: 16px;
+        }
+
+        .section-header p {
+            color: var(--text-muted);
+        }
+
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-auto-rows: minmax(200px, auto);
+            gap: 24px;
+        }
+
+        .bento-item {
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .bento-item.large {
+            grid-column: span 2;
+        }
+
+        .bento-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(10, 102, 255, 0.1);
+            color: var(--brand-blue);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 24px;
+        }
+
+        .bento-item h3 {
+            font-size: 1.4rem;
+            margin-bottom: 12px;
+        }
+
+        .bento-item p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+       /* SHOWCASE SECTION - CENTRATA E PIÙ GRANDE */
+.showcase {
+    padding: 80px 0;
+}
+
+.gallery {
+    display: flex;
+    justify-content: center; /* Centra le immagini orizzontalmente */
+    align-items: center;     /* Centra le immagini verticalmente (se hanno altezze diverse) */
+    gap: 30px;               /* Spazio tra le immagini aumentato */
+    flex-wrap: wrap;         /* Permette alle immagini di andare a capo su mobile */
+    padding: 20px 0;
+}
+
+.gallery-item {
+    /* Dimensioni aumentate: larghezza 500px e altezza 300px */
+    width: 600px;
+    max-width: 90%;          /* Evita che l'immagine esca dallo schermo su mobile */
+    height: 400px; 
+    flex-shrink: 0;
+    border-radius: 24px;     /* Angoli leggermente più arrotondati per coerenza */
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); /* Aggiunge profondità */
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; 
+    transition: transform 0.5s ease;
+}
+
+/* Effetto zoom più fluido al passaggio del mouse */
+.gallery-item:hover img {
+    transform: scale(1.08);
+}
+
+        /* FOOTER CTA */
+        .cta-section {
+            padding: 120px 0;
+            text-align: center;
+        }
+
+        .cta-card {
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.8), rgba(10, 102, 255, 0.1));
+            padding: 60px 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-card h2 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .cta-card .btn {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* FOOTER */
+        footer {
+            padding: 40px 0;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-socials a {
+            color: var(--text-muted);
+            margin-left: 16px;
+            font-size: 1.2rem;
+            transition: color 0.3s;
+        }
+
+        .footer-socials a:hover {
+            color: var(--brand-blue);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 992px) {
+            .hero { flex-direction: column; text-align: center; padding-top: 120px; }
+            .hero-text { margin-bottom: 40px; }
+            .hero p { margin: 0 auto 40px; }
+            .hero-actions { justify-content: center; }
+            .bento-grid { grid-template-columns: 1fr; }
+            .bento-item.large { grid-column: span 1; }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .hero h1 { font-size: 3rem; }
+            .gallery-item { min-width: 280px; }
+            .cta-card h2 { font-size: 2rem; }
+            .footer-content { flex-direction: column; gap: 20px; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sfondo con bagliori blu -->
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+    <div class="ambient-glow glow-3"></div>
+
+    <!-- NAVBAR -->
+    <nav>
+        <div class="container nav-wrapper">
+            <a href="#" class="brand">
+                <!-- IMMAGINE MANUALE RICHIESTA -->
+                <img src="assets/logos/felix-os.png" alt="FelixOS Logo">
+                FelixOS
+            </a>
+            <div class="nav-links">
+                <a href="#about">About</a>
+                <a href="#features">Features</a>
+                <a href="#shell">Felix Shell</a>
+                <a href="#community">Community</a>
+            </div>
+            <a href="#download" class="btn"><i class="fa-solid fa-download"></i> Get OS</a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero container" id="about">
+        <div class="hero-text reveal">
+            <div class="hero-badge">Arch-based Core</div>
+            <h1>Rethink your <br><span>Workflow.</span></h1>
+            <p>Experience the sheer power of Arch Linux combined with the crystalline elegance of Felix Shell. A seamless, bloatware-free desktop experience designed to maximize your productivity.</p>
+            <div class="hero-actions">
+                <a href="#download" class="btn">Download ISO</a>
+                <a href="#features" class="btn btn-outline">Explore Features</a>
+            </div>
+        </div>
+        <div class="hero-visual reveal">
+            <!-- Sostituisci questo con uno screenshot della tua Shell reale -->
+            <img src="assets/previews/felix-preview2.png" alt="Felix Shell Interface" class="floating-ui">
+        </div>
+    </section>
+
+    <!-- BENTO GRID FEATURES -->
+    <section class="features container" id="features">
+        <div class="section-header reveal">
+            <h2>Built for Performance.</h2>
+            <p>Optimized in every single line of code, from the Kernel to the UI.</p>
+        </div>
+
+        <div class="bento-grid">
+            <div class="glass-card bento-item large reveal">
+                <div class="bento-icon"><i class="fa-brands fa-linux"></i></div>
+                <h3>Felix Shell (GNOME)</h3>
+                <p>Not your average GNOME. We've redesigned the UI, introducing Glassmorphism elements, new animations, and a workflow that never interrupts your flow of thought. Fewer distractions, more focus.</p>
+            </div>
+            
+            <div class="glass-card bento-item reveal">
+                <div class="bento-icon"><i class="fa-solid fa-bolt"></i></div>
+                <h3>Zero Latency</h3>
+                <p>Customized kernel for instant response times. Ideal for competitive gaming and software development.</p>
+            </div>
+
+            <div class="glass-card bento-item reveal">
+                <div class="bento-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                <h3>Secure & Open</h3>
+                <p>All FelixOS code is open source (Under GPL-v3.0 license). Transparency is our foundation, your privacy is our priority.</p>
+            </div>
+
+            <div class="glass-card bento-item large reveal">
+                <div class="bento-icon"><i class="fa-solid fa-memory"></i></div>
+                <h3>Hardware Optimization</h3>
+                <p>RAM consumption is reduced by 30% compared to traditional distributions. Your laptop's battery will last longer thanks to intelligent management of background processes, without compromising fluidity.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- HORIZONTAL SHOWCASE -->
+    <section class="showcase container" id="shell">
+        <div class="section-header reveal">
+            <h2>The Glass Interface</h2>
+            <p>A look inside the system.</p>
+        </div>
+        <div class="gallery reveal">
+            <!-- SOSTITUISCI GLI SRC CON I TUOI SCREENSHOT -->
+            <div class="gallery-item">
+                <img src="assets/previews/felix-preview1.png" alt="Start">
+            </div>
+            <div class="gallery-item">
+                <img src="assets/previews/felix-preview2.png" alt="Settings">
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section container" id="download">
+        <div class="glass-card cta-card reveal">
+            <h2>Ready to upgrade your machine?</h2>
+            <p style="margin-bottom: 30px; color: var(--text-muted);">Join the thousands of users who have already chosen FelixOS.</p>
+            <a href="https://is.gd/felixdiscord" class="btn"><i class="fa-brands fa-discord"></i> Under development. Join the Discord!</a>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer id="community">
+        <div class="container footer-content">
+            <div>
+                &copy; 2026 FelixOS. Built with <i class="fa-solid fa-heart" style="color: var(--brand-blue);"></i> and Arch.
+            </div>
+            <div class="footer-socials">
+                <a href="https://github.com/FelixOS-Linux/"><i class="fa-brands fa-github"></i></a>
+                <a href="https://is.gd/felixdiscord"><i class="fa-brands fa-discord"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT PER LE ANIMAZIONI -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const reveals = document.querySelectorAll(".reveal");
+
+            const revealOnScroll = () => {
+                const windowHeight = window.innerHeight;
+                const elementVisible = 100;
+
+                reveals.forEach((reveal) => {
+                    const elementTop = reveal.getBoundingClientRect().top;
+                    if (elementTop < windowHeight - elementVisible) {
+                        reveal.classList.add("active");
+                    }
+                });
+            };
+
+            window.addEventListener("scroll", revealOnScroll);
+            revealOnScroll(); // Trigger on load
+        });
+    </script>
+</body>
+</html>
